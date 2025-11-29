@@ -12,6 +12,10 @@ export async function watchSomniaStream(
   const sdk = await getSdk();
   const schemaId = await getSchemaId();
 
+  if (!schemaId) {
+    throw new Error("Failed to compute schema ID for subscription");
+  }
+
   const subscription: SomniaSubscription = await sdk.streams.subscribe(
     schemaId,
     [],
@@ -45,4 +49,3 @@ function mapDecodedResult(
     txHash: payload.txHash,
   };
 }
-

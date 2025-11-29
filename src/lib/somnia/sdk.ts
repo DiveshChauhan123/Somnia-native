@@ -43,11 +43,16 @@ export async function getSdk() {
   return sdkInstance;
 }
 
-export async function getSchemaId() {
+export async function getSchemaId(): Promise<`0x${string}`> {
   if (schemaIdCache) return schemaIdCache;
 
   const sdk = await getSdk();
-  schemaIdCache = await sdk.streams.computeSchemaId(STREAM_SCHEMA_DEFINITION);
+  const computedSchemaId = await sdk.streams.computeSchemaId(STREAM_SCHEMA_DEFINITION);
+  
+  if (!computedSchemaId) {
+    throw new Error("Failed to compute schema ID");
+  }
+  
+  schemaIdCache = computedSchemaId;
   return schemaIdCache;
 }
-
