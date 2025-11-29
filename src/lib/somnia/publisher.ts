@@ -16,12 +16,19 @@ export async function publishToSomnia(input: PublishInput) {
   if (!env.isPublisherConfigured) {
     return NextResponse.json(
       { error: "Publisher wallet is not configured" },
-      { status: 503 },
+      { status: 503 }
     );
   }
 
   const sdk = await getSdk();
   const schemaId = await getSchemaId();
+
+  if (!schemaId) {
+    return NextResponse.json(
+      { error: "Failed to compute schema ID" },
+      { status: 500 }
+    );
+  }
 
   const encoded = schemaEncoder.encodeData([
     { name: "timestamp", value: `${Date.now()}`, type: "uint64" },
@@ -46,6 +53,7 @@ export async function publishToSomnia(input: PublishInput) {
 
   const dataId = toHex(`somnia-${Date.now()}`, { size: 32 });
 
+  // SDK returns a TRANSACTION HASH STRING, not an object with .transactionHash
   const receipt = await sdk.streams.set([
     {
       id: dataId,
@@ -58,9 +66,8 @@ export async function publishToSomnia(input: PublishInput) {
     {
       success: true,
       dataId,
-      transactionHash: receipt.transactionHash,
+      transactionHash: receipt, // << FIXED
     },
-    { status: 200 },
+    { status: 200 }
   );
 }
-
